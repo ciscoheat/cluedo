@@ -74,10 +74,23 @@
 		$sheet = $sheet;
 	}
 
-	function addPlayer() {
-		const name = window.prompt('Namn?');
-		if (!name || Object.keys($sheet).includes(name)) return;
-		$sheet = { ...$sheet, [name]: emptyPlayer() };
+	function addPlayers() {
+		const name = window.prompt(
+			'Skriv in första bokstaven på alla som ska spela, separerade med komma:'
+		);
+		if (!name) return;
+
+		const players = name
+			.split(',')
+			.map((n) => n.trim().slice(0, 1).toUpperCase())
+			.filter((p) => p);
+
+		sheet.update(($sheet) => {
+			for (const player of players) {
+				$sheet[player] = emptyPlayer();
+			}
+			return $sheet;
+		});
 	}
 </script>
 
@@ -87,7 +100,9 @@
 		{#each Object.entries($sheet) as [player]}
 			<div class="guess">{player}</div>
 		{/each}
-		<div class="guess" on:click={addPlayer}>{@html add}</div>
+		{#if Object.keys($sheet).length < 2}
+			<div class="guess" on:click={addPlayers}>{@html add}</div>
+		{/if}
 	</div>
 
 	<h3 class="first">Vem?</h3>
@@ -188,6 +203,7 @@
 			display: flex;
 			align-items: center;
 			padding-left: 0.15rem;
+			font-weight: bold;
 		}
 
 		.row {
@@ -204,6 +220,8 @@
 				min-height: 24px;
 				align-items: center;
 				justify-content: center;
+				// For the correct unicode symbols
+				font-family: 'Times New Roman', Times, serif;
 			}
 
 			&.players {
