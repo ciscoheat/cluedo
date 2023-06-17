@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { testSheet, type Clues, type Guess, emptySheet } from '$lib/clues';
-	let sheet = emptySheet();
+	import { type Guess, emptySheet, emptyPlayer } from '$lib/clues';
+	import add from '$lib/add.svg?raw';
+	import { persisted } from 'svelte-local-storage-store';
 
-	$: players = Object.entries(sheet);
-	$: who = Object.keys(sheet[''].who);
-	$: what = Object.keys(sheet[''].what);
-	$: where = Object.keys(sheet[''].where);
+	let sheet = persisted('sheet', emptySheet());
+
+	$: players = Object.entries($sheet);
+	$: who = Object.keys($sheet[''].who);
+	$: what = Object.keys($sheet[''].what);
+	$: where = Object.keys($sheet[''].where);
 
 	function guessIcon(guess: Guess) {
 		switch (guess) {
@@ -36,16 +39,23 @@
 				obj[key] = '';
 				break;
 		}
-		sheet = sheet;
+		$sheet = $sheet;
+	}
+
+	function addPlayer() {
+		const name = window.prompt('Namn?');
+		if (!name) return;
+		$sheet = { ...$sheet, [name]: emptyPlayer() };
 	}
 </script>
 
 <div class="sheet">
 	<div class="row players">
 		<div class="first">Spelare</div>
-		{#each Object.entries(sheet) as [player]}
+		{#each Object.entries($sheet) as [player]}
 			<div class="guess">{player}</div>
 		{/each}
+		<div class="guess" on:click={addPlayer}>{@html add}</div>
 	</div>
 
 	<h3 class="first">Vem?</h3>
@@ -67,7 +77,9 @@
 		<div class="row">
 			<div class="first"><span>{murderWeapon}</span></div>
 			{#each players as [_, clues]}
-				<div class="guess"><span>{guessIcon(clues.what[murderWeapon])}</span></div>
+				<div class="guess" on:click={() => toggleGuess(clues.what, murderWeapon)}>
+					<span>{guessIcon(clues.what[murderWeapon])}</span>
+				</div>
 			{/each}
 		</div>
 	{/each}
@@ -78,7 +90,9 @@
 		<div class="row">
 			<div class="first"><span>{location}</span></div>
 			{#each players as [_, clues]}
-				<div class="guess"><span>{guessIcon(clues.where[location])}</span></div>
+				<div class="guess" on:click={() => toggleGuess(clues.where, location)}>
+					<span>{guessIcon(clues.where[location])}</span>
+				</div>
 			{/each}
 		</div>
 	{/each}

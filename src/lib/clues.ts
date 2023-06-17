@@ -50,10 +50,15 @@ export type Clues = typeof emptyClue;
 
 export type Sheet = Record<string, Clues>;
 
-export function emptySheet(): Sheet {
-	return { '': emptyClue };
+export function emptyPlayer() {
+	return structuredClone(emptyClue);
 }
 
+export function emptySheet(): Sheet {
+	return { '': structuredClone(emptyClue) };
+}
+
+/*
 export function testSheet(): Sheet {
 	return {
 		'': randomGuesses(emptyClue),
@@ -63,3 +68,4 @@ export function testSheet(): Sheet {
 		L: randomGuesses(emptyClue)
 	};
 }
+*/
