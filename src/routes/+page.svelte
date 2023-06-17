@@ -1,14 +1,46 @@
 <script lang="ts">
 	import { type Guess, emptySheet, emptyPlayer } from '$lib/clues';
 	import add from '$lib/add.svg?raw';
+	import settings from '$lib/settings.svg?raw';
 	import { persisted } from 'svelte-local-storage-store';
+	import { onMount } from 'svelte';
 
 	let sheet = persisted('sheet', emptySheet());
+	let settingsDialog: HTMLDialogElement;
 
 	$: players = Object.entries($sheet);
 	$: who = Object.keys($sheet[''].who);
 	$: what = Object.keys($sheet[''].what);
 	$: where = Object.keys($sheet[''].where);
+
+	onMount(() => {
+		settingsDialog.addEventListener('click', (e) => {
+			const dialogDimensions = settingsDialog.getBoundingClientRect();
+			if (
+				e.clientX < dialogDimensions.left ||
+				e.clientX > dialogDimensions.right ||
+				e.clientY < dialogDimensions.top ||
+				e.clientY > dialogDimensions.bottom
+			) {
+				settingsDialog.close();
+			}
+		});
+	});
+
+	function removeGuesses() {
+		sheet.update(($sheet) => {
+			for (const player of Object.keys($sheet)) {
+				$sheet[player] = emptyPlayer();
+			}
+			return $sheet;
+		});
+		settingsDialog.close();
+	}
+
+	function removeAll() {
+		sheet.set(emptySheet());
+		settingsDialog.close();
+	}
 
 	function guessIcon(guess: Guess) {
 		switch (guess) {
@@ -44,7 +76,7 @@
 
 	function addPlayer() {
 		const name = window.prompt('Namn?');
-		if (!name) return;
+		if (!name || Object.keys($sheet).includes(name)) return;
 		$sheet = { ...$sheet, [name]: emptyPlayer() };
 	}
 </script>
@@ -96,7 +128,18 @@
 			{/each}
 		</div>
 	{/each}
+
+	<div class="toolbar">
+		<span on:click={() => settingsDialog.showModal()}>{@html settings}</span>
+	</div>
 </div>
+
+<dialog bind:this={settingsDialog}>
+	<div>
+		<div><button on:click={removeGuesses}>Ta bort gissningar</button></div>
+		<div><button on:click={removeAll}>Ta bort spelare och gissningar</button></div>
+	</div>
+</dialog>
 
 <style lang="scss">
 	:global(body) {
@@ -105,7 +148,28 @@
 		background-color: #999;
 	}
 
+	dialog {
+		&::backdrop {
+			background-color: rgba(0, 0, 0, 0.7);
+		}
+		> div {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			text-align: center;
+		}
+	}
+
+	.toolbar {
+		text-align: center;
+
+		:global(svg) {
+			width: 24px;
+		}
+	}
+
 	.sheet {
+		overflow: scroll;
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
@@ -120,6 +184,7 @@
 
 		.first {
 			width: 120px;
+			min-width: 120px;
 			display: flex;
 			align-items: center;
 			padding-left: 0.15rem;
