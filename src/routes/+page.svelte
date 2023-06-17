@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { testSheet, type Clues, type Guess } from '$lib/clues';
-	const sheet = testSheet();
+	import { testSheet, type Clues, type Guess, emptySheet } from '$lib/clues';
+	let sheet = emptySheet();
 
 	$: players = Object.entries(sheet);
 	$: who = Object.keys(sheet[''].who);
@@ -19,11 +19,30 @@
 				return '';
 		}
 	}
+
+	function toggleGuess(obj: Record<string, Guess>, key: string) {
+		console.log('🚀 ~ file: +page.svelte:25 ~ toggleGuess ~ obj[key]:', obj[key]);
+		switch (obj[key]) {
+			case '':
+				obj[key] = 'cross';
+				break;
+			case 'cross':
+				obj[key] = 'question';
+				break;
+			case 'question':
+				obj[key] = 'check';
+				break;
+			default:
+				obj[key] = '';
+				break;
+		}
+		sheet = sheet;
+	}
 </script>
 
 <div class="sheet">
-	<div class="row">
-		<div class="first players">Spelare</div>
+	<div class="row players">
+		<div class="first">Spelare</div>
 		{#each Object.entries(sheet) as [player]}
 			<div class="guess">{player}</div>
 		{/each}
@@ -35,7 +54,9 @@
 		<div class="row">
 			<div class="first"><span>{person}</span></div>
 			{#each players as [_, clues]}
-				<div class="guess"><span>{guessIcon(clues.who[person])}</span></div>
+				<div class="guess" on:click={() => toggleGuess(clues.who, person)}>
+					<span>{guessIcon(clues.who[person])}</span>
+				</div>
 			{/each}
 		</div>
 	{/each}
@@ -79,13 +100,8 @@
 			margin: 0;
 			padding: 0.15rem 0;
 			background-color: #eee;
-		}
-
-		.players {
+			font-size: 1.3em;
 			text-transform: uppercase;
-			font-weight: bold;
-			letter-spacing: 0.25em;
-			font-size: 1.17em;
 		}
 
 		.first {
@@ -105,10 +121,24 @@
 
 			.guess {
 				display: flex;
-				min-width: 48px;
+				min-width: 36px;
 				min-height: 24px;
 				align-items: center;
 				justify-content: center;
+			}
+
+			&.players {
+				.first {
+					background-color: transparent;
+					color: #eee;
+					text-transform: uppercase;
+					letter-spacing: 0.25em;
+					font-size: 1.5em;
+				}
+
+				:nth-child(2) {
+					background-color: transparent;
+				}
 			}
 		}
 	}

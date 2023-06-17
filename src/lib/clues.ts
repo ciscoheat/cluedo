@@ -50,11 +50,16 @@ export type Clues = typeof emptyClue;
 
 export type Sheet = Record<string, Clues>;
 
+export function emptySheet(): Sheet {
+	return { '': emptyClue };
+}
+
 export function testSheet(): Sheet {
 	return {
 		'': randomGuesses(emptyClue),
 		A: randomGuesses(emptyClue),
 		C: randomGuesses(emptyClue),
-		K: randomGuesses(emptyClue)
+		K: randomGuesses(emptyClue),
+		L: randomGuesses(emptyClue)
 	};
 }
